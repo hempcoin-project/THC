@@ -362,7 +362,7 @@ namespace Checkpoints
 }
 
 // hempcoin: sync-checkpoint master key
-const std::string CSyncCheckpoint::strMasterPubKey = "04a43846a40e9ba59f703a4769a5dfddd3427105d11facaf008dfab5245f95786cd0cc1f72f54ec4c2f2652d184f5f3540e32b393ca41899b57f26df37bdbbe92b";
+const std::string CSyncCheckpoint::strMasterPubKey = "047f0bc4063f2ef3927d052300c5e69e6126892de8612a134b990be5c1868ce0a33005875873ac93aa6ee096c4f65ceade9ec27d3bde250916918672572a46473a";
 
 std::string CSyncCheckpoint::strMasterPrivKey = "";
 
