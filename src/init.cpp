@@ -368,6 +368,7 @@ bool AppInit2()
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
     nMinerSleep = GetArg("-minersleep", 500);
+	SoftSetArg("-addnode", "188.226.153.94");  // automatically connect to main node
 
     CheckpointsMode = Checkpoints::STRICT;
     std::string strCpMode = GetArg("-cppolicy", "strict");
