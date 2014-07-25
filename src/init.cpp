@@ -232,7 +232,7 @@ std::string HelpMessage()
 {
     string strUsage = _("Options:") + "\n" +
         "  -?                     " + _("This help message") + "\n" +
-        "  -conf=<file>           " + _("Specify configuration file (default: hempcoin.conf)") + "\n" +
+        "  -conf=<file>           " + _("Specify configuration file (default: Hempcoin.conf)") + "\n" +
         "  -pid=<file>            " + _("Specify pid file (default: hempcoind.pid)") + "\n" +
         "  -datadir=<dir>         " + _("Specify data directory") + "\n" +
         "  -wallet=<file>         " + _("Specify wallet file (within data directory)") + "\n" +

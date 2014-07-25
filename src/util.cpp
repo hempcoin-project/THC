@@ -1121,7 +1121,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\Hempcoin
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\Hempcoin
     // Mac: ~/Library/Application Support/Hempcoin
-    // Unix: ~/.hempcoin
+    // Unix: ~/.Hempcoin
 #ifdef WIN32
     // Windows
     return GetSpecialFolderPath(CSIDL_APPDATA) / "Hempcoin";
@@ -1139,7 +1139,7 @@ boost::filesystem::path GetDefaultDataDir()
     return pathRet / "Hempcoin";
 #else
     // Unix
-    return pathRet / ".hempcoin";
+    return pathRet / ".Hempcoin";
 #endif
 #endif
 }
@@ -1181,7 +1181,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "hempcoin.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "Hempcoin.conf"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
