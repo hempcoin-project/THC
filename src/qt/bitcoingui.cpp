@@ -82,7 +82,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     QString ss("QMenuBar::item { background-color: transparent; color: #000000 }"); // Use background-color instead of background
      menuBar()->setStyleSheet(ss);
     
-    resize(850, 550);
+    resize(950, 650);
     setWindowTitle(tr("Hempcoin") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
