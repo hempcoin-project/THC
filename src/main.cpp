@@ -2258,8 +2258,8 @@ bool CBlock::AcceptBlock()
 	
 	}
 	
-    if (nBonusReward > 0)
-	return DoS(100, error("AcceptBlock() : missing bonus block reward tx"));
+    //if (nBonusReward > 0)
+	//return DoS(100, error("AcceptBlock() : missing bonus block reward tx"));
 		
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, vtx)
