@@ -31,6 +31,11 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
     model(0)
 {
     ui->setupUi(this);
+	
+	setStyleSheet("color: #000000;"
+    "background-image: url(:/Background/res/images/walletbg.png);" "QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");   
+    
+    QString ss("QMenuBar::item { background-color: transparent; color: #000000 }"); // Use background-color instead of background
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
