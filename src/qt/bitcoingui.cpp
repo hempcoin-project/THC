@@ -219,8 +219,8 @@ void BitcoinGUI::createActions()
 {
     QActionGroup *tabGroup = new QActionGroup(this);
 
-    overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Your stash"), this);
-    overviewAction->setToolTip(tr("Show general overview of your stash"));
+    overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Your crop"), this);
+    overviewAction->setToolTip(tr("Show general overview of your crop"));
     overviewAction->setCheckable(true);
     overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
     tabGroup->addAction(overviewAction);
