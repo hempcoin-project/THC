@@ -10,7 +10,7 @@
 
 *60 second block targets, progressive difficulty retargeting
 
-*250 Coins Per Block
+*125 Coins Per Block
 
 *Halving at 500,000 Block Intervals
 
@@ -36,11 +36,7 @@ Default location for config file: %appcoin%\Hempcoin\Hempcoin.conf
 
 Official Website: http://hempcoin.org/
 
-Official Pools: http://www.hemppool.org  http://thc.coinswim.com  http://hempharvest.org  http://thc.mine-coin.de
-
-Block Crawlers: http://69.10.58.157/hempcoin/ or http://88.208.236.108/explorer
-
-Block Explorer (coming soon): http://88.208.236.108:2750
+Block Explorer: http://hempchain.info
 
 Faucet: http://88.208.236.108/faucet/
 
