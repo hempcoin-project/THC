@@ -52,7 +52,7 @@ int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd)
     //
     // Maximum TimeWeight is 90 days.
 
-    return min(nIntervalEnd - nIntervalBeginning - nStakeMinAge, (int64)nStakeMaxAge);
+    return min(nIntervalEnd - nIntervalBeginning - nStakeMinAge, (int64_t)nStakeMaxAge);
 }
 
 // Get the last stake modifier and its generation time from a given block
@@ -325,10 +325,16 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
     int64 nValueIn = txPrev.vout[prevout.n].nValue;
+    printf("prevout.n = %u \n", prevout.n);
+    txPrev.print();
 
     uint256 hashBlockFrom = blockFrom.GetHash();
 
-    CBigNum bnCoinDayWeight = CBigNum(nValueIn) * GetWeight((int64)txPrev.nTime, (int64)nTimeTx) / COIN / (24 * 60 * 60);
+    printf("nTimeTx = %u and txPrev.nTime = %u and nValueIn = %" PRI64d "\n", nTimeTx, txPrev.nTime, nValueIn);
+    CBigNum bnCoinDayWeight = CBigNum(nValueIn) * GetWeight((int64)txPrev.nTime, (int64)nTimeTx) / (24 * 60 * 60);
+
+    printf("bnCoinDayWeight = %s \n", bnCoinDayWeight.ToString().c_str());
+
     targetProofOfStake = (bnCoinDayWeight * bnTargetPerCoinDay).getuint256();
 
     // Calculate hash
@@ -338,12 +344,15 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     int64 nStakeModifierTime = 0;
 
     if (!GetKernelStakeModifier(hashBlockFrom, nStakeModifier, nStakeModifierHeight, nStakeModifierTime, fPrintProofOfStake))
+    {
+        printf("GetKernelStakeModifier failed, returning false \n");
         return false;
+    }
     ss << nStakeModifier;
 
     ss << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
-    if (fPrintProofOfStake)
+    //if (fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
             nStakeModifier, nStakeModifierHeight,
@@ -357,8 +366,14 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     }
 
     // Now check if proof-of-stake hash meets target protocol
-    if (CBigNum(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay)
+    CBigNum weightDayTarget = bnCoinDayWeight * bnTargetPerCoinDay;
+    if (CBigNum(hashProofOfStake) > weightDayTarget)
+    {
+        printf("\n\n\n>>> hashStake = %s > weightDayTarget=%s and it should not be\n",
+        CBigNum(hashProofOfStake).ToString().c_str(), weightDayTarget.ToString().c_str());
+        printf(">>> CheckStakeKernelHash - hashProofOfStake too much\n\n\n");
         return false;
+    }
     if (fDebug && !fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
