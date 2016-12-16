@@ -568,7 +568,6 @@ void StakeMiner(CWallet *pwallet)
         IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
 
         // Trying to sign a block
-        printf("created block through PoS, about to sign \n");
         if (pblock->SignBlock(*pwallet))
         {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);

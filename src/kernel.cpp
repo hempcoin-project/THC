@@ -52,7 +52,7 @@ int64 GetWeight(int64 nIntervalBeginning, int64 nIntervalEnd)
     //
     // Maximum TimeWeight is 90 days.
 
-    return min(nIntervalEnd - nIntervalBeginning - nStakeMinAge, (int64_t)nStakeMaxAge);
+    return min(nIntervalEnd - nIntervalBeginning - nStakeMinAge, (int64)nStakeMaxAge);
 }
 
 // Get the last stake modifier and its generation time from a given block
@@ -325,15 +325,20 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
     int64 nValueIn = txPrev.vout[prevout.n].nValue;
-    printf("prevout.n = %u \n", prevout.n);
     txPrev.print();
-
     uint256 hashBlockFrom = blockFrom.GetHash();
 
-    printf("nTimeTx = %u and txPrev.nTime = %u and nValueIn = %" PRI64d "\n", nTimeTx, txPrev.nTime, nValueIn);
-    CBigNum bnCoinDayWeight = CBigNum(nValueIn) * GetWeight((int64)txPrev.nTime, (int64)nTimeTx) / (24 * 60 * 60);
+    CBigNum bnCoinDayWeight = 0;
 
-    printf("bnCoinDayWeight = %s \n", bnCoinDayWeight.ToString().c_str());
+    if(nTimeTx < 1485907200) // feb 1st 2017 midnight GMT + 0
+    {
+        bnCoinDayWeight = CBigNum(nValueIn) * GetWeight((int64)txPrev.nTime, (int64)nTimeTx) / COIN / (24 * 60 * 60);
+    }
+    else
+    {
+        bnCoinDayWeight = CBigNum(nValueIn) * GetWeight((int64)txPrev.nTime, (int64)nTimeTx) / (24 * 60 * 60);
+    }
+
 
     targetProofOfStake = (bnCoinDayWeight * bnTargetPerCoinDay).getuint256();
 
@@ -345,14 +350,13 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
 
     if (!GetKernelStakeModifier(hashBlockFrom, nStakeModifier, nStakeModifierHeight, nStakeModifierTime, fPrintProofOfStake))
     {
-        printf("GetKernelStakeModifier failed, returning false \n");
         return false;
     }
     ss << nStakeModifier;
 
     ss << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
-    //if (fPrintProofOfStake)
+    if (fPrintProofOfStake)
     {
         printf("CheckStakeKernelHash() : using modifier 0x%016"PRI64x" at height=%d timestamp=%s for block from height=%d timestamp=%s\n",
             nStakeModifier, nStakeModifierHeight,

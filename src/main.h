@@ -409,7 +409,7 @@ public:
         if (IsEmpty()) return "CTxOut(empty)";
         if (scriptPubKey.size() < 6)
             return "CTxOut(error)";
-        return strprintf("CTxOut(nValue=%I64d, scriptPubKey=%s)", nValue, scriptPubKey.ToString().c_str());
+        return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().c_str());
     }
 
     void print() const

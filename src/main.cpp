@@ -44,7 +44,7 @@ uint256 nPoWBase = uint256("0x00000000ffff00000000000000000000000000000000000000
 
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 12);
 
-unsigned int nStakeMinAge = 60 * 60 * 24; // 45 days as zero time weight -edited to 1 day for testing
+unsigned int nStakeMinAge = 60 * 60 * 24 * 45; // 45 days as zero time weight
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 90; // 90 days as full weight
 unsigned int nStakeTargetSpacing = 1 * 60; // 1 minute spacing
 unsigned int nModifierInterval = 6 * 60 * 60; // time to elapse before new modifier is computed
@@ -1182,7 +1182,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 	int64 nTargetSpacingWorkMax0 = nTargetSpacingWorkMax;
 	if(pindexLast->nHeight > HEMPCOIN_SWITCHOVER1_BLOCK)	// from HEMPCOIN_SWITCHOVER1_BLOCK, nTargetSpacingWorkMax0 is set to 3 * nStakeTargetSpacing
 	{
-        nTargetSpacingWorkMax0 = nStakeTargetSpacing;
+        nTargetSpacingWorkMax0 = 3 * nStakeTargetSpacing;
 	}
 
     int64 nTargetSpacing = fProofOfStake? nStakeTargetSpacing : min(nTargetSpacingWorkMax0, (int64) nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
@@ -2543,7 +2543,6 @@ bool CBlock::SignBlock(CWallet& wallet)
     //    something except proof-of-stake block template
     if (!vtx[0].vout[0].IsEmpty())
     {
-        printf("vtx[0].vout[0].IsEmpty was false, returning false \n");
         return false;
     }
 
@@ -2551,7 +2550,6 @@ bool CBlock::SignBlock(CWallet& wallet)
     //    a complete proof-of-stake block
     if (IsProofOfStake())
     {
-        printf("block was already PoS. returning true \n");
         return true;
     }
 
@@ -2563,14 +2561,10 @@ bool CBlock::SignBlock(CWallet& wallet)
 
     if (nSearchTime > nLastCoinStakeSearchTime)
     {
-        printf("search time param passed \n");
         if (wallet.CreateCoinStake(wallet, nBits, nSearchTime-nLastCoinStakeSearchTime, txCoinStake, key))
         {
-            printf("coinstake was created successfully? \n");
             if (txCoinStake.nTime >= max(pindexBest->GetMedianTimePast()+1, PastDrift(pindexBest->GetBlockTime())))
             {
-                printf("coinstake time param was passed \n");
-
                 // make sure coinstake would meet timestamp protocol
                 //    as it would be the same as the block timestamp
                 vtx[0].nTime = nTime = txCoinStake.nTime;
@@ -2588,9 +2582,7 @@ bool CBlock::SignBlock(CWallet& wallet)
                 hashMerkleRoot = BuildMerkleTree();
 
                 // append a signature to our block
-                printf("about to sign block \n");
                 bool keysigned = key.Sign(GetHash(), vchBlockSig);
-                printf("block signed \n");
                 return keysigned;
             }
         }

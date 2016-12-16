@@ -1653,13 +1653,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Select coins with suitable depth
     if (!SelectCoinsSimple(nBalance - nReserveBalance, txNew.nTime, nCoinbaseMaturity * 10, setCoins, nValueIn))
     {
-        printf("select coins simple failed \n");
         return false;
     }
 
     if (setCoins.empty())
     {
-        printf("setCoins was empty \n");
         return false;
     }
 
@@ -1673,7 +1671,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             LOCK2(cs_main, cs_wallet);
             if (!txdb.ReadTxIndex(pcoin.first->GetHash(), txindex))
             {
-                printf("could not read Tx index \n");
                 continue;
             }
         }
@@ -1684,7 +1681,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             LOCK2(cs_main, cs_wallet);
             if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
             {
-                printf("could not read block from disk \n");
                 continue;
             }
         }
@@ -1692,7 +1688,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         static int nMaxStakeSearchInterval = 60;
         if (block.GetBlockTime() + nStakeMinAge > txNew.nTime - nMaxStakeSearchInterval)
         {
-            printf("block time plus min stake age param failure \n");
             continue; // only count coins meeting min age requirement
         }
 
@@ -1759,9 +1754,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
                 txNew.nTime -= n;
                 txNew.vin.push_back(CTxIn(pcoin.first->GetHash(), pcoin.second));
-                printf("nCredit before addition %" PRI64d " \n", nCredit);
                 nCredit += pcoin.first->vout[pcoin.second].nValue;
-                printf("nCredit after addition %" PRI64d " \n", nCredit);
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
 
@@ -1772,10 +1765,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 fKernelFound = true;
                 break;
             }
-            else
-            {
-                printf("CheckStakeKernelHash failed \n");
-            }
         }
 
         if (fKernelFound || fShutdown)
@@ -1784,12 +1773,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     if (nCredit == 0)
     {
-        printf("nCredit was zero causing param failure \n");
         return false;
     }
     if(nCredit > nBalance - nReserveBalance)
     {
-        printf("nCredit is greater than the balance - reserve balance");
+        return false;
     }
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
