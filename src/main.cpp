@@ -1150,10 +1150,14 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == NULL)
+    {
         return bnTargetLimit.GetCompact(); // first block
+    }
     const CBlockIndex* pindexPrevPrev = GetLastBlockIndex(pindexPrev->pprev, fProofOfStake);
     if (pindexPrevPrev->pprev == NULL)
+    {
         return bnTargetLimit.GetCompact(); // second block
+    }
 
     int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 	if(pindexLast->nHeight > HEMPCOIN_SWITCHOVER_BLOCK)
@@ -1178,7 +1182,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 	int64 nTargetSpacingWorkMax0 = nTargetSpacingWorkMax;
 	if(pindexLast->nHeight > HEMPCOIN_SWITCHOVER1_BLOCK)	// from HEMPCOIN_SWITCHOVER1_BLOCK, nTargetSpacingWorkMax0 is set to 3 * nStakeTargetSpacing
 	{
-		nTargetSpacingWorkMax0 = 3 * nStakeTargetSpacing;
+        nTargetSpacingWorkMax0 = 3 * nStakeTargetSpacing;
 	}
 
     int64 nTargetSpacing = fProofOfStake? nStakeTargetSpacing : min(nTargetSpacingWorkMax0, (int64) nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
@@ -2227,8 +2231,12 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
 
     // Check proof-of-work or proof-of-stake
-    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()))
+    unsigned int nextTarget = GetNextTargetRequired(pindexPrev, IsProofOfStake());
+    if (nBits != nextTarget)
+    {
+        printf("nBits = %u != nextTarget = %u \n ", nBits, nextTarget);
         return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
+    }
 
     // Check timestamp against prev
     if (GetBlockTime() <= pindexPrev->GetMedianTimePast() || FutureDrift(GetBlockTime()) < pindexPrev->GetBlockTime())
@@ -2534,12 +2542,16 @@ bool CBlock::SignBlock(CWallet& wallet)
     // if we are trying to sign
     //    something except proof-of-stake block template
     if (!vtx[0].vout[0].IsEmpty())
+    {
         return false;
+    }
 
     // if we are trying to sign
     //    a complete proof-of-stake block
     if (IsProofOfStake())
+    {
         return true;
+    }
 
     static int64 nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
 
@@ -2562,13 +2574,16 @@ bool CBlock::SignBlock(CWallet& wallet)
                 // we have to make sure that we have no future timestamps in
                 //    our transactions set
                 for (vector<CTransaction>::iterator it = vtx.begin(); it != vtx.end();)
+                {
                     if (it->nTime > nTime) { it = vtx.erase(it); } else { ++it; }
+                }
 
                 vtx.insert(vtx.begin() + 1, txCoinStake);
                 hashMerkleRoot = BuildMerkleTree();
 
                 // append a signature to our block
-                return key.Sign(GetHash(), vchBlockSig);
+                bool keysigned = key.Sign(GetHash(), vchBlockSig);
+                return keysigned;
             }
         }
         nLastCoinStakeSearchInterval = nSearchTime - nLastCoinStakeSearchTime;

@@ -165,18 +165,16 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     int64 nBonusReward = GetProofOfWorkBlockBonusRewardFactor(pindexPrev);
     if (nBonusReward > 0)
     {
-	CBlock prevBlock;
-	prevBlock.ReadFromDisk(pindexPrev, true);
+        CBlock prevBlock;
+        prevBlock.ReadFromDisk(pindexPrev, true);
 	
-	CTransaction txReward = prevBlock.vtx[0];
-	for (unsigned i = 0; i < txReward.vout.size(); i++)
-	    txReward.vout[i].nValue *= nBonusReward;
+        CTransaction txReward = prevBlock.vtx[0];
+        for (unsigned i = 0; i < txReward.vout.size(); i++)
+            txReward.vout[i].nValue *= nBonusReward;
 
-	// Add bonus block reward tx
-	pblock->vtx.push_back(txReward);
+        // Add bonus block reward tx
+        pblock->vtx.push_back(txReward);
     }
-
-    pblock->nBits = GetNextTargetRequired(pindexPrev, pblock->IsProofOfStake());
 	
     // Collect memory pool transactions into the block
     int64 nFees = 0;

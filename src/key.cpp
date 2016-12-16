@@ -282,7 +282,7 @@ CPubKey CKey::GetPubKey() const
         throw key_error("CKey::GetPubKey() : i2o_ECPublicKey returned unexpected size");
     return CPubKey(vchPubKey);
 }
-
+/*
 bool CKey::Sign(uint256 hash, std::vector<unsigned char>& vchSig)
 {
     unsigned int nSize = ECDSA_size(pkey);
@@ -292,6 +292,34 @@ bool CKey::Sign(uint256 hash, std::vector<unsigned char>& vchSig)
         vchSig.clear();
         return false;
     }
+    vchSig.resize(nSize); // Shrink to fit actual size
+    return true;
+}
+*/
+bool CKey::Sign(uint256 hash, std::vector<unsigned char>& vchSig)
+{
+    vchSig.clear();
+    ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
+    if (sig == NULL)
+        return false;
+    BN_CTX *ctx = BN_CTX_new();
+    BN_CTX_start(ctx);
+    const EC_GROUP *group = EC_KEY_get0_group(pkey);
+    BIGNUM *order = BN_CTX_get(ctx);
+    BIGNUM *halforder = BN_CTX_get(ctx);
+    EC_GROUP_get_order(group, order, ctx);
+    BN_rshift1(halforder, order);
+    if (BN_cmp(sig->s, halforder) > 0) {
+        // enforce low S values, by negating the value (modulo the order) if above order/2.
+        BN_sub(sig->s, order, sig->s);
+    }
+    BN_CTX_end(ctx);
+    BN_CTX_free(ctx);
+    unsigned int nSize = ECDSA_size(pkey);
+    vchSig.resize(nSize); // Make sure it is big enough
+    unsigned char *pos = &vchSig[0];
+    nSize = i2d_ECDSA_SIG(sig, &pos);
+    ECDSA_SIG_free(sig);
     vchSig.resize(nSize); // Shrink to fit actual size
     return true;
 }
