@@ -1770,6 +1770,11 @@ bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
         vDisconnect.push_back(pindex);
 
+    if(vDisconnect.size() > nCoinbaseMaturity)
+    {
+        return error("Reorganize() : attempting to reorganize unhealthy number of blocks, reorganization prevented");
+    }
+
     // List of what to connect
     vector<CBlockIndex*> vConnect;
     for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
