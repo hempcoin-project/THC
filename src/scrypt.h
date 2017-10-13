@@ -6,6 +6,9 @@
 #include "util.h"
 #include "net.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-fpermissive"
+
 static const int SCRYPT_SCRATCHPAD_SIZE = 131072 + 63;
 
 void scrypt_1024_1_1_256(const char *input, char *output);
@@ -49,4 +52,5 @@ static inline void le32enc(void *pp, uint32_t x)
         p[2] = (x >> 16) & 0xff;
         p[3] = (x >> 24) & 0xff;
 }
+#pragma GCC diagnostic pop
 #endif
