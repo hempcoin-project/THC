@@ -645,11 +645,13 @@ public:
 
     bool IsTrusted() const
     {
-        // Quick answer in most cases
         if (!IsFinal())
             return false;
-        if (GetDepthInMainChain() >= 1)
+        int nDepth = GetDepthInMainChain();
+        if (nDepth >= 1)
             return true;
+        if (nDepth < 0)
+            return false;
         if (fConfChange || !IsFromMe()) // using wtx's cached debit
             return false;
 
