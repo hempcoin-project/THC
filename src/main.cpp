@@ -2283,6 +2283,9 @@ bool CBlock::AcceptBlock()
     if (!Checkpoints::CheckHardened(nHeight, hash))
         return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight));
 
+    /*
+    disable sync-checkpoints because they consume way too much CPU time (they are not used anyway)
+	
     bool cpSatisfies = Checkpoints::CheckSync(hash, pindexPrev);
 
     // Check that the block satisfies synchronized checkpoint
@@ -2291,6 +2294,7 @@ bool CBlock::AcceptBlock()
 
     if (CheckpointsMode == Checkpoints::ADVISORY && !cpSatisfies)
         strMiscWarning = _("WARNING: syncronized checkpoint violation detected, but skipped!");
+    */
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
