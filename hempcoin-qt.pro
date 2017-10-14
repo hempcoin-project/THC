@@ -9,7 +9,7 @@ CONFIG += static
 CONFIG += widgets
 QT += core gui network widgets
 
-DEFINES += USE_SSE2
+DEFINES += USE_SSE2 USE_SSE2_ALWAYS
 
 QMAKE_CXXFLAGS = -fpermissive
 
