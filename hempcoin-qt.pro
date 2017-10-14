@@ -11,7 +11,7 @@ QT += core gui network widgets
 
 DEFINES += USE_SSE2 USE_SSE2_ALWAYS
 
-QMAKE_CXXFLAGS = -fpermissive
+QMAKE_CXXFLAGS = -fpermissive -msse2
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += widgets
