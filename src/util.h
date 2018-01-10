@@ -5,6 +5,7 @@
 #ifndef BITCOIN_UTIL_H
 #define BITCOIN_UTIL_H
 
+
 #include "uint256.h"
 
 #ifndef WIN32
@@ -17,22 +18,29 @@
 #include <vector>
 #include <string>
 
+#ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
+#endif
 
-#include <openssl/sha.h>
-#include <openssl/ripemd.h>
+#include <stdarg.h>
+
+#if defined(__USE_MINGW_ANSI_STDIO)
+#undef __USE_MINGW_ANSI_STDIO // This constant forces MinGW to conduct stupid behavior
+#endif
+#include <inttypes.h>
 
 #include "netbase.h" // for AddTimeData
 
-typedef long long  int64;
-typedef unsigned long long  uint64;
+static const int32_t nOneHour = 60 * 60;
+static const int32_t nOneDay = 24 * 60 * 60;
+static const int64_t nOneWeek = 7 * 24 * 60 * 60;
 
-static const int64 COIN = 1000000;
-static const int64 CENT = 10000;
+static const int64_t COIN = 1000000;
+static const int64_t CENT = 10000;
 
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))
@@ -45,18 +53,6 @@ static const int64 CENT = 10000;
 #define UINTBEGIN(a)        ((uint32_t*)&(a))
 #define CUINTBEGIN(a)        ((const uint32_t*)&(a))
 
-#ifndef PRI64d
-#if defined(_MSC_VER) || defined(__MSVCRT__)
-#define PRI64d  "I64d"
-#define PRI64u  "I64u"
-#define PRI64x  "I64x"
-#else
-#define PRI64d  "lld"
-#define PRI64u  "llu"
-#define PRI64x  "llx"
-#endif
-#endif
-
 #ifndef THROW_WITH_STACKTRACE
 #define THROW_WITH_STACKTRACE(exception)  \
 {                                         \
@@ -66,6 +62,18 @@ static const int64 CENT = 10000;
 void LogStackTrace();
 #endif
 
+#if defined(_MSC_VER) || defined(__MSVCRT__)
+ /* Silence compiler warnings on Windows 
+     related to MinGWs inttypes.h */
+ #undef PRIu64
+ #undef PRId64
+ #undef PRIx64
+
+ #define PRIu64 "I64u"
+ #define PRId64 "I64d"
+ #define PRIx64 "I64x"
+
+#endif
 
 /* Format characters for (s)size_t and ptrdiff_t */
 #if defined(_MSC_VER) || defined(__MSVCRT__)
@@ -114,7 +122,7 @@ T* alignup(T* p)
 #endif
 #else
 #define MAX_PATH            1024
-inline void Sleep(int64 n)
+inline void Sleep(int64_t n)
 {
     /*Boost has a year 2038 problem— if the request sleep time is past epoch+2^31 seconds the sleep returns instantly.
       So we clamp our sleeps here to 10 years and hope that boost is fixed by 2028.*/
@@ -190,9 +198,9 @@ void LogException(std::exception* pex, const char* pszThread);
 void PrintException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 void ParseString(const std::string& str, char c, std::vector<std::string>& v);
-std::string FormatMoney(int64 n, bool fPlus=false);
-bool ParseMoney(const std::string& str, int64& nRet);
-bool ParseMoney(const char* pszIn, int64& nRet);
+std::string FormatMoney(int64_t n, bool fPlus=false);
+bool ParseMoney(const std::string& str, int64_t& nRet);
+bool ParseMoney(const char* pszIn, int64_t& nRet);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
 bool IsHex(const std::string& str);
@@ -204,8 +212,8 @@ std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
-std::string EncodeDumpTime(int64 nTime);
-int64 DecodeDumpTime(const std::string& s);
+std::string EncodeDumpTime(int64_t nTime);
+int64_t DecodeDumpTime(const std::string& s);
 std::string EncodeDumpString(const std::string &str);
 std::string DecodeDumpString(const std::string &str);
 void ParseParameters(int argc, const char*const argv[]);
@@ -227,15 +235,18 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
 void ShrinkDebugFile();
 int GetRandInt(int nMax);
-uint64 GetRand(uint64 nMax);
+uint64_t GetRand(uint64_t nMax);
 uint256 GetRandHash();
-int64 GetTime();
-void SetMockTime(int64 nMockTimeIn);
-int64 GetAdjustedTime();
-int64 GetTimeOffset();
+int64_t GetTime();
+int64_t GetTimeMillis();
+int64_t GetTimeMicros();
+
+int64_t GetAdjustedTime();
+int64_t GetTimeOffset();
+int64_t GetNodesOffset();
 std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
-void AddTimeData(const CNetAddr& ip, int64 nTime);
+void AddTimeData(const CNetAddr& ip, int64_t nTime);
 void runCommand(std::string strCommand);
 
 
@@ -246,9 +257,9 @@ void runCommand(std::string strCommand);
 
 
 
-inline std::string i64tostr(int64 n)
+inline std::string i64tostr(int64_t n)
 {
-    return strprintf("%"PRI64d, n);
+    return strprintf("%" PRId64, n);
 }
 
 inline std::string itostr(int n)
@@ -256,7 +267,7 @@ inline std::string itostr(int n)
     return strprintf("%d", n);
 }
 
-inline int64 atoi64(const char* psz)
+inline int64_t atoi64(const char* psz)
 {
 #ifdef _MSC_VER
     return _atoi64(psz);
@@ -265,13 +276,33 @@ inline int64 atoi64(const char* psz)
 #endif
 }
 
-inline int64 atoi64(const std::string& str)
+inline int64_t atoi64(const std::string& str)
 {
 #ifdef _MSC_VER
     return _atoi64(str.c_str());
 #else
     return strtoll(str.c_str(), NULL, 10);
 #endif
+}
+
+inline int32_t strtol(const char* psz)
+{
+    return strtol(psz, NULL, 10);
+}
+
+inline int32_t strtol(const std::string& str)
+{
+    return strtol(str.c_str(), NULL, 10);
+}
+
+inline uint32_t strtoul(const char* psz)
+{
+    return strtoul(psz, NULL, 10);
+}
+
+inline uint32_t strtoul(const std::string& str)
+{
+    return strtoul(str.c_str(), NULL, 10);
 }
 
 inline int atoi(const std::string& str)
@@ -284,12 +315,12 @@ inline int roundint(double d)
     return (int)(d > 0 ? d + 0.5 : d - 0.5);
 }
 
-inline int64 roundint64(double d)
+inline int64_t roundint64(double d)
 {
-    return (int64)(d > 0 ? d + 0.5 : d - 0.5);
+    return (int64_t)(d > 0 ? d + 0.5 : d - 0.5);
 }
 
-inline int64 abs64(int64 n)
+inline int64_t abs64(int64_t n)
 {
     return (n >= 0 ? n : -n);
 }
@@ -339,36 +370,35 @@ inline void PrintHex(const std::vector<unsigned char>& vch, const char* pszForma
     printf(pszFormat, HexStr(vch, fSpaces).c_str());
 }
 
-inline int64 GetPerformanceCounter()
+inline int64_t GetPerformanceCounter()
 {
-    int64 nCounter = 0;
+    int64_t nCounter = 0;
 #ifdef WIN32
     QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
 #else
     timeval t;
     gettimeofday(&t, NULL);
-    nCounter = (int64) t.tv_sec * 1000000 + t.tv_usec;
+    nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
 #endif
     return nCounter;
 }
 
-inline int64 GetTimeMillis()
+inline int64_t GetTimeMillis()
 {
-    return (boost::posix_time::ptime(boost::posix_time::microsec_clock::universal_time()) -
+    return (boost::posix_time::microsec_clock::universal_time() -
             boost::posix_time::ptime(boost::gregorian::date(1970,1,1))).total_milliseconds();
 }
 
-inline std::string DateTimeStrFormat(const char* pszFormat, int64 nTime)
+inline int64_t GetTimeMicros()
 {
-    time_t n = nTime;
-    struct tm* ptmTime = gmtime(&n);
-    char pszTime[200];
-    strftime(pszTime, sizeof(pszTime), pszFormat, ptmTime);
-    return pszTime;
+    return (boost::posix_time::microsec_clock::universal_time() -
+                   boost::posix_time::ptime(boost::gregorian::date(1970,1,1))).total_microseconds();
 }
 
+std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
+
 static const std::string strTimestampFormat = "%Y-%m-%d %H:%M:%S UTC";
-inline std::string DateTimeStrFormat(int64 nTime)
+inline std::string DateTimeStrFormat(int64_t nTime)
 {
     return DateTimeStrFormat(strTimestampFormat.c_str(), nTime);
 }
@@ -400,13 +430,31 @@ inline bool IsSwitchChar(char c)
 std::string GetArg(const std::string& strArg, const std::string& strDefault);
 
 /**
- * Return integer argument or default value
+ * Return 64-bit integer argument or default value
  *
  * @param strArg Argument to get (e.g. "-foo")
  * @param default (e.g. 1)
  * @return command-line argument (0 if invalid number) or default value
  */
-int64 GetArg(const std::string& strArg, int64 nDefault);
+int64_t GetArg(const std::string& strArg, int64_t nDefault);
+
+/**
+ * Return 32-bit integer argument or default value
+ *
+ * @param strArg Argument to get (e.g. "-foo")
+ * @param default (e.g. 1)
+ * @return command-line argument (0 if invalid number) or default value
+ */
+int32_t GetArgInt(const std::string& strArg, int32_t nDefault);
+
+/**
+ * Return 32-bit unsigned integer argument or default value
+ *
+ * @param strArg Argument to get (e.g. "-foo")
+ * @param default (e.g. 1)
+ * @return command-line argument (0 if invalid number) or default value
+ */
+uint32_t GetArgUInt(const std::string& strArg, uint32_t nDefault);
 
 /**
  * Return boolean argument or default value
@@ -434,116 +482,6 @@ bool SoftSetArg(const std::string& strArg, const std::string& strValue);
  * @return true if argument gets set, false if it already had a value
  */
 bool SoftSetBoolArg(const std::string& strArg, bool fValue);
-
-
-
-
-
-
-
-
-
-template<typename T1>
-inline uint256 Hash(const T1 pbegin, const T1 pend)
-{
-    static unsigned char pblank[1];
-    uint256 hash1;
-    SHA256((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]), (pend - pbegin) * sizeof(pbegin[0]), (unsigned char*)&hash1);
-    uint256 hash2;
-    SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
-    return hash2;
-}
-
-class CHashWriter
-{
-private:
-    SHA256_CTX ctx;
-
-public:
-    int nType;
-    int nVersion;
-
-    void Init() {
-        SHA256_Init(&ctx);
-    }
-
-    CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {
-        Init();
-    }
-
-    CHashWriter& write(const char *pch, size_t size) {
-        SHA256_Update(&ctx, pch, size);
-        return (*this);
-    }
-
-    // invalidates the object
-    uint256 GetHash() {
-        uint256 hash1;
-        SHA256_Final((unsigned char*)&hash1, &ctx);
-        uint256 hash2;
-        SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
-        return hash2;
-    }
-
-    template<typename T>
-    CHashWriter& operator<<(const T& obj) {
-        // Serialize to this stream
-        ::Serialize(*this, obj, nType, nVersion);
-        return (*this);
-    }
-};
-
-
-template<typename T1, typename T2>
-inline uint256 Hash(const T1 p1begin, const T1 p1end,
-                    const T2 p2begin, const T2 p2end)
-{
-    static unsigned char pblank[1];
-    uint256 hash1;
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, (p1begin == p1end ? pblank : (unsigned char*)&p1begin[0]), (p1end - p1begin) * sizeof(p1begin[0]));
-    SHA256_Update(&ctx, (p2begin == p2end ? pblank : (unsigned char*)&p2begin[0]), (p2end - p2begin) * sizeof(p2begin[0]));
-    SHA256_Final((unsigned char*)&hash1, &ctx);
-    uint256 hash2;
-    SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
-    return hash2;
-}
-
-template<typename T1, typename T2, typename T3>
-inline uint256 Hash(const T1 p1begin, const T1 p1end,
-                    const T2 p2begin, const T2 p2end,
-                    const T3 p3begin, const T3 p3end)
-{
-    static unsigned char pblank[1];
-    uint256 hash1;
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, (p1begin == p1end ? pblank : (unsigned char*)&p1begin[0]), (p1end - p1begin) * sizeof(p1begin[0]));
-    SHA256_Update(&ctx, (p2begin == p2end ? pblank : (unsigned char*)&p2begin[0]), (p2end - p2begin) * sizeof(p2begin[0]));
-    SHA256_Update(&ctx, (p3begin == p3end ? pblank : (unsigned char*)&p3begin[0]), (p3end - p3begin) * sizeof(p3begin[0]));
-    SHA256_Final((unsigned char*)&hash1, &ctx);
-    uint256 hash2;
-    SHA256((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
-    return hash2;
-}
-
-template<typename T>
-uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=PROTOCOL_VERSION)
-{
-    CHashWriter ss(nType, nVersion);
-    ss << obj;
-    return ss.GetHash();
-}
-
-inline uint160 Hash160(const std::vector<unsigned char>& vch)
-{
-    uint256 hash1;
-    SHA256(&vch[0], vch.size(), (unsigned char*)&hash1);
-    uint160 hash2;
-    RIPEMD160((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
-    return hash2;
-}
 
 /**
  * Timing-attack-resistant comparison.
@@ -593,7 +531,7 @@ public:
 
     T median() const
     {
-        int size = vSorted.size();
+        size_t size = vSorted.size();
         assert(size>0);
         if(size & 1) // Odd number of elements
         {
@@ -607,7 +545,7 @@ public:
 
     int size() const
     {
-        return vValues.size();
+        return static_cast<int>(vValues.size());
     }
 
     std::vector<T> sorted () const

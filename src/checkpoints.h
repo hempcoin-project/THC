@@ -5,10 +5,11 @@
 #define  BITCOIN_CHECKPOINT_H
 
 #include <map>
-#include "net.h"
 #include "util.h"
+#include "net.h"
 
-#define CHECKPOINT_MAX_SPAN (3 * 60) // max 3 minutes before latest block
+// max 1 hour before latest block
+static const int64_t CHECKPOINT_MAX_SPAN = nOneHour;
 
 #ifdef WIN32
 #undef STRICT
@@ -46,7 +47,7 @@ namespace Checkpoints
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
 
     // Returns last checkpoint timestamp
-    int GetLastCheckpointTime();
+    unsigned int GetLastCheckpointTime();
 
     extern uint256 hashSyncCheckpoint;
     extern CSyncCheckpoint checkpointMessage;
@@ -95,11 +96,6 @@ public:
                 ")\n",
             nVersion,
             hashCheckpoint.ToString().c_str());
-    }
-
-    void print() const
-    {
-        printf("%s", ToString().c_str());
     }
 };
 

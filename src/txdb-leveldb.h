@@ -91,7 +91,7 @@ protected:
                                 SER_DISK, CLIENT_VERSION);
             ssValue >> value;
         }
-        catch (std::exception &e) {
+        catch (const std::exception&) {
             return false;
         }
         return true;
@@ -204,8 +204,6 @@ public:
     bool ReadModifierUpgradeTime(unsigned int& nUpgradeTime);
     bool WriteModifierUpgradeTime(const unsigned int& nUpgradeTime);
     bool LoadBlockIndex();
-private:
-    bool LoadBlockIndexGuts();
 };
 
 

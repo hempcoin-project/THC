@@ -223,7 +223,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
         priv(new TransactionTablePriv(wallet, this)),
         cachedNumBlocks(0)
 {
-    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Amount");
+    columns << QString() << tr("Date") << tr("Type") << tr("Address") << BitcoinUnits::getAmountColumnTitle(walletModel->getOptionsModel()->getDisplayUnit());
 
     priv->refreshWallet();
 
@@ -237,6 +237,13 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
 TransactionTableModel::~TransactionTableModel()
 {
     delete priv;
+}
+
+/** Updates the column title to "Amount (DisplayUnit)" and emits headerDataChanged() signal for table headers to react. */
+void TransactionTableModel::updateAmountColumnTitle()
+{
+    columns[Amount] = BitcoinUnits::getAmountColumnTitle(walletModel->getOptionsModel()->getDisplayUnit());
+    emit headerDataChanged(Qt::Horizontal,Amount,Amount);
 }
 
 void TransactionTableModel::updateTransaction(const QString &hash, int status)
@@ -261,6 +268,12 @@ void TransactionTableModel::updateConfirmations()
     }
 }
 
+void TransactionTableModel::refresh()
+{
+    priv->refreshWallet();
+    emit dataChanged(index(0, 0), index(priv->size() - 1, Amount));
+}
+
 int TransactionTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
@@ -276,6 +289,12 @@ int TransactionTableModel::columnCount(const QModelIndex &parent) const
 QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) const
 {
     QString status;
+    int nNumConf = TransactionRecord::NumConfirmations;
+
+    if (wtx->type == TransactionRecord::Generated)
+    {
+        nNumConf = nCoinbaseMaturity + 20;
+    }
 
     switch(wtx->status.status)
     {
@@ -289,7 +308,7 @@ QString TransactionTableModel::formatTxStatus(const TransactionRecord *wtx) cons
         status = tr("Offline (%1 confirmations)").arg(wtx->status.depth);
         break;
     case TransactionStatus::Unconfirmed:
-        status = tr("Unconfirmed (%1 of %2 confirmations)").arg(wtx->status.depth).arg(TransactionRecord::NumConfirmations);
+        status = tr("Unconfirmed (%1 of %2 confirmations)").arg(wtx->status.depth).arg(nNumConf);
         break;
     case TransactionStatus::HaveConfirmations:
         status = tr("Confirmed (%1 confirmations)").arg(wtx->status.depth);
@@ -382,7 +401,6 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
     default:
         return QIcon(":/icons/tx_inout");
     }
-    return QVariant();
 }
 
 QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const
@@ -530,13 +548,15 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         case Status:
             return QString::fromStdString(rec->status.sortKey);
         case Date:
-            return rec->time;
+            // We need cast here to prevent ambigious conversion error
+            return static_cast<qlonglong>(rec->time);
         case Type:
             return formatTxType(rec);
         case ToAddress:
             return formatTxToAddress(rec, true);
         case Amount:
-            return rec->credit + rec->debit;
+            // Same here
+            return static_cast<qlonglong>(rec->credit + rec->debit);
         }
         break;
     case Qt::ToolTipRole:
@@ -569,9 +589,12 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
     case LabelRole:
         return walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(rec->address));
     case AmountRole:
-        return rec->credit + rec->debit;
+        // And here
+        return static_cast<qlonglong>(rec->credit + rec->debit);
     case TxIDRole:
         return QString::fromStdString(rec->getTxID());
+    case TxHashRole:
+        return QString::fromStdString(rec->hash.ToString());
     case ConfirmedRole:
         // Return True if transaction counts for balance
         return rec->status.confirmed && !(rec->type == TransactionRecord::Generated && rec->status.maturity != TransactionStatus::Mature);
@@ -628,6 +651,7 @@ QModelIndex TransactionTableModel::index(int row, int column, const QModelIndex 
 
 void TransactionTableModel::updateDisplayUnit()
 {
+    updateAmountColumnTitle();
     // emit dataChanged to update Amount column with the current unit
     emit dataChanged(index(0, Amount), index(priv->size()-1, Amount));
 }

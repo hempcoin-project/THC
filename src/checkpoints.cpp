@@ -4,6 +4,7 @@
 
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <boost/foreach.hpp>
+#include <algorithm>
 
 #include "checkpoints.h"
 
@@ -33,8 +34,9 @@ namespace Checkpoints
         ( 130000, std::make_pair(uint256("0x00000001aba24aa5e52499c910ed55514676360f63f45a2a35204bef639448ef"), 1402752542) )
         ( 160000, std::make_pair(uint256("0x000000003ac2156ee4bd636314e02c86b0d08dad4ec66077bef82a18cd785632"), 1404493970) )
         ( 185000, std::make_pair(uint256("0x00000000983a866468ce187783f1a0712f9afa2372a24c35b563d14df9ddec4b"), 1406062025) )
-		( 194110, std::make_pair(uint256("0x000000005cbf493c04bcb69a2d68a656294d134ed6903184153941e705f18989"), 1406655537) )
-		(1830000, std::make_pair(uint256("0x0000000001976858ba9360597bf249f4c8739da8d0869a9bfd6e994e0abf0bf9"), 1507470508) )
+        ( 194110, std::make_pair(uint256("0x000000005cbf493c04bcb69a2d68a656294d134ed6903184153941e705f18989"), 1406655537) )
+        (1830000, std::make_pair(uint256("0x0000000001976858ba9360597bf249f4c8739da8d0869a9bfd6e994e0abf0bf9"), 1507470508) )
+        (1995100, std::make_pair(uint256("0x00000000000b5c7bd4b9df4d97fc74738b10fffbfbed01c86c9ede9b4447c3e6"), 1514980714) )
     ;
 
     // TestNet has no checkpoints
@@ -59,7 +61,7 @@ namespace Checkpoints
         return checkpoints.rbegin()->first;
     }
 
-    int GetLastCheckpointTime()
+    unsigned int GetLastCheckpointTime()
     {
         MapCheckpoints& checkpoints = (fTestNet ? mapCheckpointsTestnet : mapCheckpoints);
 
@@ -117,7 +119,7 @@ namespace Checkpoints
             // that current checkpoint should be a descendant block
             CBlockIndex* pindex = pindexSyncCheckpoint;
             while (pindex->nHeight > pindexCheckpointRecv->nHeight)
-                if (!(pindex = pindex->pprev))
+                if ((pindex = pindex->pprev) == NULL)
                     return error("ValidateSyncCheckpoint: pprev null - block index structure failure");
             if (pindex->GetBlockHash() != hashCheckpoint)
             {
@@ -132,7 +134,7 @@ namespace Checkpoints
         // to verify.
         CBlockIndex* pindex = pindexCheckpointRecv;
         while (pindex->nHeight > pindexSyncCheckpoint->nHeight)
-            if (!(pindex = pindex->pprev))
+            if ((pindex = pindex->pprev) == NULL)
                 return error("ValidateSyncCheckpoint: pprev2 null - block index structure failure");
         if (pindex->GetBlockHash() != hashSyncCheckpoint)
         {
@@ -193,8 +195,8 @@ namespace Checkpoints
             // relay the checkpoint
             if (!checkpointMessage.IsNull())
             {
-                BOOST_FOREACH(CNode* pnode, vNodes)
-                    checkpointMessage.RelayTo(pnode);
+                for (std::vector<CNode*>::iterator it = vNodes.begin(); it != vNodes.end(); ++it)
+                    checkpointMessage.RelayTo(*it);
             }
             return true;
         }
@@ -227,7 +229,7 @@ namespace Checkpoints
             // trace back to same height as sync-checkpoint
             const CBlockIndex* pindex = pindexPrev;
             while (pindex->nHeight > pindexSync->nHeight)
-                if (!(pindex = pindex->pprev))
+                if ((pindex = pindex->pprev) == NULL)
                     return error("CheckSync: pprev null - block index structure failure");
             if (pindex->nHeight < pindexSync->nHeight || pindex->GetBlockHash() != hashSyncCheckpoint)
                 return false; // only descendant of sync-checkpoint can pass check
@@ -345,8 +347,8 @@ namespace Checkpoints
         // Relay checkpoint
         {
             LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodes)
-                checkpoint.RelayTo(pnode);
+            for (std::vector<CNode*>::iterator it = vNodes.begin(); it != vNodes.end(); ++it)
+                checkpoint.RelayTo(*it);
         }
         return true;
     }
@@ -371,9 +373,7 @@ std::string CSyncCheckpoint::strMasterPrivKey = "";
 // ppcoin: verify signature of sync-checkpoint message
 bool CSyncCheckpoint::CheckSignature()
 {
-    CKey key;
-    if (!key.SetPubKey(ParseHex(CSyncCheckpoint::strMasterPubKey)))
-        return error("CSyncCheckpoint::CheckSignature() : SetPubKey failed");
+    CPubKey key(ParseHex(CSyncCheckpoint::strMasterPubKey));
     if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
         return error("CSyncCheckpoint::CheckSignature() : verify signature failed");
 

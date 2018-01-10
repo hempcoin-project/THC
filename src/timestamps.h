@@ -10,4 +10,6 @@ static const unsigned int FEE_SWITCH_TIME = 1406401200; // Sun, 20 Jul 2014 00:0
 
 static const unsigned int VALIDATION_SWITCH_TIME = 1406401200; // Wed, 20 Aug 2014 00:00:00 GMT
 
+static const unsigned int CHECKLOCKTIMEVERIFY_SWITCH_TIME = 1861110400; // Wednesday, 20-Apr-16 00:00:00 UTC
+
 #endif

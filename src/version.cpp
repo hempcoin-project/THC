@@ -13,6 +13,26 @@ const std::string CLIENT_NAME("Satoshi");
 // Client version number
 #define CLIENT_VERSION_SUFFIX   ""
 
+// Compiler name
+#ifdef __INTEL_COMPILER
+//code specific to intel compiler
+#define CL_NAME   "-icpc"
+#elif _MSC_VER
+//code specific to MSVC compiler
+#define CL_NAME   "-msvc"
+#elif __clang__
+//code specific to clang compilers
+#define CL_NAME   "-clang"
+#elif __GNUC__
+//code for GNU C compiler
+#define CL_NAME   "-gcc"
+#elif __MINGW32__
+//code specific to mingw compilers
+#define CL_NAME   "-mingw"
+#else
+#define CL_NAME   "-genericcl"
+//others
+#endif
 
 // The following part of the code determines the CLIENT_BUILD variable.
 // Several mechanisms are used for this:
@@ -62,5 +82,5 @@ const std::string CLIENT_NAME("Satoshi");
 #    endif
 #endif
 
-const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX);
+const std::string CLIENT_BUILD(BUILD_DESC CLIENT_VERSION_SUFFIX CL_NAME);
 const std::string CLIENT_DATE(BUILD_DATE);

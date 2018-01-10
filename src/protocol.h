@@ -13,12 +13,13 @@
 #include "serialize.h"
 #include "netbase.h"
 #include <string>
+#include <limits>
 #include "uint256.h"
 
 extern bool fTestNet;
-static inline unsigned short GetDefaultPort(const bool testnet = fTestNet)
+inline unsigned short GetDefaultPort()
 {
-    return testnet ? 31054 : 21054;
+    return static_cast<unsigned short>(fTestNet ? 31054 : 21054);
 }
 
 
@@ -67,7 +68,7 @@ class CMessageHeader
 /** nServices flags */
 enum
 {
-    NODE_NETWORK = (1 << 0),
+    NODE_NETWORK = (1 << 0)
 };
 
 /** A CService with information about it as peer */
@@ -75,9 +76,7 @@ class CAddress : public CService
 {
     public:
         CAddress();
-        explicit CAddress(CService ipIn, uint64 nServicesIn=NODE_NETWORK);
-
-        void Init();
+        explicit CAddress(CService ipIn, uint64_t nServicesIn=NODE_NETWORK);
 
         IMPLEMENT_SERIALIZE
             (
@@ -94,17 +93,15 @@ class CAddress : public CService
              READWRITE(*pip);
             )
 
-        void print() const;
-
     // TODO: make private (improves encapsulation)
     public:
-        uint64 nServices;
+        uint64_t nServices;
 
         // disk and network only
         unsigned int nTime;
 
         // memory only
-        int64 nLastTry;
+        int64_t nLastTry;
 };
 
 /** inv message data */
@@ -126,7 +123,6 @@ class CInv
         bool IsKnownType() const;
         const char* GetCommand() const;
         std::string ToString() const;
-        void print() const;
 
     // TODO: make private (improves encapsulation)
     public:

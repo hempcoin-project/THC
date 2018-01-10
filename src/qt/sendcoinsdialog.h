@@ -10,6 +10,7 @@ namespace Ui {
 class WalletModel;
 class SendCoinsEntry;
 class SendCoinsRecipient;
+class CoinControlDialog;
 
 QT_BEGIN_NAMESPACE
 class QUrl;
@@ -39,7 +40,7 @@ public slots:
     void accept();
     SendCoinsEntry *addEntry();
     void updateRemoveEnabled();
-    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
+    void setBalance(qint64 total, qint64 watchOnly, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance);
 
     void on_addressBookButton_clicked();
     void on_pasteButton_clicked();
@@ -48,6 +49,7 @@ private:
     Ui::SendCoinsDialog *ui;
     WalletModel *model;
     bool fNewRecipientAllowed;
+    CoinControlDialog *coinControl;
 
 private slots:
     void on_sendButton_clicked();
