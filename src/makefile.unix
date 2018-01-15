@@ -144,7 +144,7 @@ OBJS= \
     obj/kernel_worker.o \
     obj/ecies.o \
     obj/cryptogram.o \
-    obj/scrypt.o
+    obj/scrypt.o \
     obj/scrypt-sse2.o \
     obj/ipcollector.o
 
