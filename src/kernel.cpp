@@ -370,9 +370,9 @@ bool CheckStakeKernelHash(uint32_t nBits, const CBlock& blockFrom, uint32_t nTxP
     CBigNum weightDayTarget = bnCoinDayWeight * bnTargetPerCoinDay;
     if (CBigNum(hashProofOfStake) > weightDayTarget)
     {
-        printf("\n\n\n>>> hashStake = %s > weightDayTarget=%s and it should not be\n",
-        CBigNum(hashProofOfStake).ToString().c_str(), weightDayTarget.ToString().c_str());
-        printf(">>> CheckStakeKernelHash - hashProofOfStake too much\n\n\n");
+        //printf("\n\n\n>>> hashStake = %s > weightDayTarget=%s and it should not be\n",
+        //CBigNum(hashProofOfStake).ToString().c_str(), weightDayTarget.ToString().c_str());
+        //printf(">>> CheckStakeKernelHash - hashProofOfStake too much\n\n\n");
         return false;
     }
     if (fDebug && !fPrintProofOfStake)

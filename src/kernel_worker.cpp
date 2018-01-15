@@ -21,7 +21,7 @@ void KernelWorker::Do_generic()
     // Compute maximum possible target to filter out majority of obviously insufficient hashes
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
-    uint256 nMaxTarget = (bnTargetPerCoinDay * bnValueIn * nStakeMaxAge / COIN / nOneDay).getuint256();
+    uint256 nMaxTarget = (bnTargetPerCoinDay * bnValueIn * nStakeMaxAge / nOneDay).getuint256();
 
     SHA256_CTX ctx, workerCtx;
     // Init new sha256 context and update it
@@ -53,7 +53,7 @@ void KernelWorker::Do_generic()
         if (hashProofOfStake[7] > nMaxTarget32)
             continue;
 
-        CBigNum bnCoinDayWeight = bnValueIn * GetWeight((int64_t)nInputTxTime, (int64_t)nTimeTx) / COIN / nOneDay;
+        CBigNum bnCoinDayWeight = bnValueIn * GetWeight((int64_t)nInputTxTime, (int64_t)nTimeTx) / nOneDay;
         CBigNum bnTargetProofOfStake = bnCoinDayWeight * bnTargetPerCoinDay;
 
         if (bnTargetProofOfStake >= CBigNum(*pnHashProofOfStake))
@@ -81,7 +81,7 @@ bool ScanKernelBackward(unsigned char *kernel, uint32_t nBits, uint32_t nInputTx
     CBigNum bnValueIn(nValueIn);
 
     // Get maximum possible target to filter out the majority of obviously insufficient hashes
-    uint256 nMaxTarget = (bnTargetPerCoinDay * bnValueIn * nStakeMaxAge / COIN / nOneDay).getuint256();
+    uint256 nMaxTarget = (bnTargetPerCoinDay * bnValueIn * nStakeMaxAge / nOneDay).getuint256();
 
     SHA256_CTX ctx, workerCtx;
     // Init new sha256 context and update it
@@ -110,7 +110,7 @@ bool ScanKernelBackward(unsigned char *kernel, uint32_t nBits, uint32_t nInputTx
         if (hashProofOfStake > nMaxTarget)
             continue;
 
-        CBigNum bnCoinDayWeight = bnValueIn * GetWeight((int64_t)nInputTxTime, (int64_t)nTimeTx) / COIN / nOneDay;
+        CBigNum bnCoinDayWeight = bnValueIn * GetWeight((int64_t)nInputTxTime, (int64_t)nTimeTx) / nOneDay;
         CBigNum bnTargetProofOfStake = bnCoinDayWeight * bnTargetPerCoinDay;
 
         if (bnTargetProofOfStake >= CBigNum(hashProofOfStake))
