@@ -9,13 +9,10 @@ CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
 
-DEFINES += USE_SSE2
-
-QMAKE_CXXFLAGS = -fpermissive
+DEFINES += USE_SSE2 USE_SSE2_ALWAYS
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += widgets
-    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
 
@@ -155,12 +152,8 @@ contains(USE_O3, 1) {
     QMAKE_CFLAGS += -O3
 }
 
-*-g++-32 {
-    message("32 platform, adding -msse2 flag")
-
-    QMAKE_CXXFLAGS += -msse2
-    QMAKE_CFLAGS += -msse2
-}
+QMAKE_CXXFLAGS += -msse2
+QMAKE_CFLAGS += -msse2
 
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wno-deprecated -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
 
