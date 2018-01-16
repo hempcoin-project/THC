@@ -36,7 +36,9 @@ Default location for config file: %appcoin%\Hempcoin\Hempcoin.conf
 
 Official Website: http://hempcoin.org/
 
-Official Pools: http://www.hemppool.org  http://thc.coinswim.com  http://hempharvest.org  http://thc.mine-coin.de
+Official Pools: none
+
+Unofficial Pool: https://www.mining-dutch.nl/pools/hempcoin.php
 
 Block Crawlers: http://69.10.58.157/hempcoin/ or http://88.208.236.108/explorer
 
@@ -44,7 +46,7 @@ Block Explorer (coming soon): http://88.208.236.108:2750
 
 Faucet: http://88.208.236.108/faucet/
 
-Exchanges: https://www.cryptoaltex.com/  https://www.bittrex.com/Market/Index?MarketName=BTC-THC  https://www.europex.eu/#!coin/btc/thc  https://coin-swap.net/market/THC/BTC  
+Exchanges: https://www.bittrex.com/Market/Index?MarketName=BTC-THC 
 
 ------------------------------------------------------------------
 
